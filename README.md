@@ -1,4 +1,4 @@
-This is a code repository for the preliminary analysis of Sarmman Project data (Nigeria), currently under discussion.
+This is a code repository for the preliminary analysis of Sarmaan Project data (Nigeria), currently under discussion.
 
 The MATLAB file Nigeria.m produces all figures and tables included in the report, using some input data files: bASe.csv, MICSnigeria.csv, DHSnigeria.csv, and IGMEnigeria.csv. These data files are not part of this repository but can be consolidated after running the Stata do-file quality_checks.do (also within this repository).
 
