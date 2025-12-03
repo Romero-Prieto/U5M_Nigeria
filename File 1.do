@@ -368,6 +368,7 @@ sort       cluster moTHer k
 destring   p_count hOUseHOLd latitude longitude, replace
 format     %-tcDD/NN/CCYY_HH:MM:SS sUBmiSSion* sTArt eNd
 rename     _* x_*
+drop if    x_validation      == "validation_status_not_approved"
 export     delimited using "`pATh'/bASe.csv", replace
 save     "`pATh'/bASe.dta", replace
 
