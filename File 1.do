@@ -8,7 +8,7 @@ foreach sheet of local M {                                                      
 	clear                                                                       /*Clears all variables and observations.*/
 	generate   cluster = ""                                                     /*Clusters represent batches of data collection; for example, Kano corresponds to clusters 1 and 2, while Kaduna corresponds to cluster 3, and so on.*/
 	save     ``sheet'', replace                                                 /*Saves the temporary file for later use.*/
-	forvalues cluster = 5(1)7 {                                                 /*Repeats the same commands for each cluster.*/
+	forvalues cluster = 6(1)7 {                                                 /*Repeats the same commands for each cluster.*/
 		quiet import excel "`pATh'/M_`cluster'.xlsx", sheet("`sheet'") firstrow case(lower) allstring clear /*Reads KoboToolbox outputs (excel files).*/
 		generate   cluster = "C-`cluster'"                                      /*Generates an identifier for each cluster.*/
 		append     using ``sheet''                                              /*Compiles data from different clusters but the same sheet.*/
@@ -144,6 +144,10 @@ rename     c_count b_count
 drop       *_son* *_daughter* daughters* sons*
 merge m:1  cluster hOUseHOLd using `mother', keep(master match) nogenerate
 rename     _index moTHer
+
+sort       cluster hOUseHOLd moTHer
+bysort     cluster hOUseHOLd: generate   h = _n
+bysort     cluster hOUseHOLd: generate   H = _N
 save      `mother', replace
 
 
@@ -213,21 +217,21 @@ generate   D_days             = ""
 local      lISt               = "q127a_age_at_death_days_1 q127a_age_at_death_days_2 q129a_age_at_death_days_dup age_days"
 foreach var of local lISt {
 	capture replace    D_days      = `var'   if D_days      == ""  & `var' != "" & survival == "dead"
-	*capture replace   `var'        = ""      if survival    == "dead"
+	capture replace   `var'        = ""      if survival    == "dead"
 	}
   
 generate   D_months           = ""
 local      lISt               = "q127a_age_at_death_months q129a_age_at_death_months_dup q129a_age_at_death_months_dup_du date_birth11 date_birth111"
 foreach var of local lISt {
 	capture replace    D_months    = `var'   if D_months    == ""  & `var' != "" & survival == "dead"
-	*capture replace   `var'        = ""      if survival    == "dead"
+	capture replace   `var'        = ""      if survival    == "dead"
 	}
   
 generate   D_years            = ""
 local      lISt               = "q129a_age_at_death_years date_birth21"
 foreach var of local lISt {
 	capture replace    D_years     = `var'   if D_years     == ""  & `var' != "" & survival == "dead"
-	*capture replace   `var'        = ""      if survival    == "dead"
+	capture replace   `var'        = ""      if survival    == "dead"
 	}
 
 replace    D_years            = "1"                   if dead         == "equal_1" & dead_1y == "yes" & D_months == ""
@@ -243,6 +247,7 @@ replace    D_min              = D_months              if tIMe         == "m"
 replace    tIMe               = "y"                   if D_years      != ""        & D_min   == ""
 replace    D_min              = D_years               if tIMe         == "y"
 destring   D_min, replace force
+drop       D_days D_months D_years
 
 generate   aiv_year           = ""
 generate   aiv_month          = ""
@@ -324,22 +329,23 @@ replace    survival           = "dead"                         if BMC       == "
 
 replace    tIMe               = "d"                            if BMC       == "yes"
 replace    D_min              = 1                              if BMC       == "yes"
-replace    D_min              = D_min                          if tIMe      == "d"
+replace    D_min              = D_min - 1                      if tIMe      == "d"
 generate   D_max              = D_min + 1
 replace    D_min              = D_min/12*365.25                if tIMe      == "m"
 replace    D_max              = D_max/12*365.25                if tIMe      == "m"
 replace    D_min              = D_min*365.25                   if tIMe      == "y"
 replace    D_max              = D_max*365.25                   if tIMe      == "y"
 
-local      FPH                = "cluster sex gestation OuTComE survival D_* B_* _parent_index _index"
+local      FPH                = "cluster sex gestation OuTComE birth survival D_* B_* _parent_index _index"
 keep      `FPH'
 order     `FPH'
 
 rename     _parent_index moTHer
 generate   c                  = 1                              if B_min     == .
-bysort     cluster moTHer: egen       missedDate = sum(c)
+bysort     cluster moTHer: egen       missedDoB  = sum(c)
 replace    c                  = 1                              if D_min     == . & survival == "dead"
-bysort     cluster moTHer: egen       missedAge  = sum(c)
+bysort     cluster moTHer: egen       missedAaD  = sum(c)
+generate   mother             = 1
 
 merge m:1  cluster moTHer using `mother', nogenerate keep(match using)
 replace    D_max              = max(max(min(B_max + D_max,dofc(sTArt)) - B_max,0),D_min)   if D_min != .
@@ -349,6 +355,10 @@ generate   d                  = 1                              if survival == "d
 bysort     cluster moTHer: egen       BornR      = sum(b)  
 bysort     cluster moTHer: egen       DeadR      = sum(d)
 drop       b d c
+
+replace    sex                = "1"                            if sex      == "male"
+replace    sex                = "2"                            if sex      == "female"
+destring   sex, replace force
 
 destring   moTHer _index, replace
 sort       cluster moTHer _index
@@ -365,19 +375,68 @@ save     "`pATh'/bASe.dta", replace
 
 local      pATh               = "/Users/lshjr3/Documents/SARMAAN"
 use      "`pATh'/bASe.dta", clear
+generate   temp               = 1 if                        sex   == 1 
+bysort     cluster moTHer: egen       boys  = sum(temp)
+drop       temp
+generate   temp               = 1 if                        sex   == 2
+bysort     cluster moTHer: egen       girls = sum(temp)
+drop       temp
+generate   temp               = 1 if                        gestation < 24 & birth == "livebirth"
+bysort     cluster moTHer: egen       G24   = sum(temp)
+drop       temp
+
+
 keep if    k                 == 1
+generate   neverEXp           = 1 if                        x_index == .
+generate   notYetApproved     = 1 if                        x_validation != "validation_status_approved" & h == 1
 
 generate   A                  = dofc(sTArt)
 generate   O                  = dofc(sTArt)
-generate   duration           = abs(eNd - sTArt)/60000/60
+generate   duration           = abs(eNd - sTArt)/(60000*60) if h == 1
 
 generate   errorB             = abs(BornR - Born)
 generate   errorD             = abs(DeadR - Dead)
-generate   interviews         = 1
+generate   women              = 1
+generate   hOUseholds         = 1   if h == 1
+generate   kIDs               = BornR
+generate   pregnancies        = K
+generate   urban              = 1   if UR == 1 & h == 1
+generate   rural              = 1   if UR == 2 & h == 1
 
-collapse (sum) missedDate missedAge errorB errorD interviews (mean) duration K (min) A (max) O, by(enum_id)
+collapse (sum) missedDoB missedAaD errorB errorD women hOUseholds duration kIDs pregnancies urban rural boys girls neverEXp notYetApproved G24 (min) A (max) O, by(cluster enum_id)
+replace    duration           = duration/hOUsehold
+generate   kIDsWoMan          = kIDs/women
+replace    rural              = rural/(urban + rural)*100
+replace    neverEXp           = neverEXp/women*100
+replace    notYetApproved     = notYetApproved/hOUseholds*100
+generate   SRB                = boys/girls
+replace    G24                = G24/kIDs*100
 format     %tdDD/NN/CCYY A O
-save     "`pATh'/list_performance.dta", replace
+drop       urban
+
+label      variable A             "First day of fieldwork"
+label      variable O             "Last day of fieldwork"
+label      variable rural         "Percentage of rural households"
+label      variable neverEXp      "Percentage of nulligravid women"
+label      variable boys          "Number of ever born boys"
+label      variable girls         "Number of ever born girls"
+label      variable SRB           "Sex Ratio at Birth (reported livebirths)"
+label      variable notYetAppro   "Percentage of surveys awaiting approval (household)"
+label      variable missedDoB     "Date of Outcome is missing"
+label      variable missedAaD     "Age of Death is not stablished"
+label      variable errorB        "Mismatched births SBH vs FPH"
+label      variable errorD        "Mismatched deaths SBH vs FPH"
+label      variable women         "Interviewed women"
+label      variable hOUseholds    "Interviewed households"
+label      variable duration      "Average duration per household (hours)"
+label      variable kIDsWoMan     "Average number of livebirths per woman"
+label      variable kIDs          "Number of livebirths"
+label      variable pregnancies   "Number of pregnancies"
+label      variable G24           "Percentage of livebirhts g < 24w"
+format     %10.2f duration rural neverEXp notYetApproved G24 kIDsWoMan SRB
+save     "`pATh'/performance.dta", replace
+
+
 
 */
 tempfile   mics
@@ -385,60 +444,8 @@ tempfile   dhs
 tempfile   temp
 tempfile   temp2
 tempfile   temp3
+
 local      pATh      = "/Users/lshjr3/Documents/SARMAAN"   
-
-import     delimited "`pATh'/UN IGME 2024.csv", clear
-keep if    geographicarea  == "Nigeria"
-keep if    seriesname      == "UN IGME estimate"
-keep if    wealthquintile  == "Total" 
-keep       indicator observationvalue lowerbound upperbound referencedate sex
-
-generate   name             = ""
-replace    name             = "child"                  if indicator == "Child Mortality rate age 1-4"
-replace    name             = "infant"                 if indicator == "Infant mortality rate"
-replace    name             = "non_neonatal_under5"    if indicator == "Mortality rate 1-59 months"
-replace    name             = "post_neonatal"          if indicator == "Mortality rate age 1-11 months"
-replace    name             = "neonatal"               if indicator == "Neonatal mortality rate"
-replace    name             = "stillbirth"             if indicator == "Stillbirth rate"
-replace    name             = "under5"                 if indicator == "Under-five mortality rate"
-drop if    name            == ""
-
-drop       indicator
-rename     referencedate Year
-order      sex Year name
-label      variable sex              ""
-label      variable Year             ""
-label      variable observationvalue ""
-label      variable lowerbound       ""
-label      variable upperbound       ""
-save      `temp'
-
-local      lISt             = "neonatal infant under5 stillbirth post_neonatal child non_neonatal_under5"
-drop if    Year            != .
-keep       sex Year
-save      `temp2'
-
-foreach var of local lISt {
-	dis       "`var'"
-	use       `temp', clear
-	keep if    name         == "`var'"
-	rename     observationvalue `var'
-	rename     lowerbound `var'_LB
-	rename     upperbound `var'_UB
-	keep       sex Year `var'*
-	save      `temp3', replace
-	
-	use       `temp2', clear
-	merge 1:1  sex Year using `temp3', nogenerate noreport
-	save      `temp2', replace
-	}
-
-keep if    sex             == "Total"
-drop       sex
-gsort     -Year
-export     delimited using "`pATh'/IGMEnigeria.csv", replace
-
-
 import     spss using "`pATh'/Nigeria MICS6 SPSS/hh.sav", clear
 keep       HH1 HH2 HH6 HH7 HH12 HH48 WS1 HC5 HC8
 keep if    HH12          == 1 /*consented interviews*/
@@ -551,16 +558,22 @@ order      cluster caseid
 label drop _all
 sort       cluster caseid k
 save      `mics', replace
+
+generate   temp         = substr("0000000000" + string(caseid),-10,.)
+drop       caseid
+rename     temp caseid
+order      cluster caseid
 sort       cluster caseid k
+save     "`pATh'/MICS.dta", replace
 export     delimited using "`pATh'/MICSnigeria.csv", replace
 
 
 local      sEL            = "caseid v001 v002 v003 v005 v006 v007 v016 v009 v010 v012 v023 v024 v025 v169a vcal_1 v008 v018"
-use       `sEL' using "`pATh'/NGIR7BFL.DTA", clear
+use       `sEL' using "`pATh'/NGIR8BFL.DTA", clear
 save      `temp', replace
 
 local      sEL            = "caseid v001 v002 v003 v006 v007 v016 v008 v009 v010 v012 v023 v024 v025 bidx b0 b1 b2 b3 b4 b6 b7 b17"
-use       `sEL' using "`pATh'/NGBR7BFL.DTA", clear
+use       `sEL' using "`pATh'/NGBR8BFL.DTA", clear
 generate   mother         = 1
 merge m:1  caseid v001 v002 v003 v006 v007 v016 v008 v009 v010 v012 v023 v024 v025 using `temp', nogenerate
 sort       caseid bidx
@@ -580,8 +593,12 @@ generate   iNDeX          = sum(w)
 replace    iNDeX          = iNDeX - Women
 drop       w
 
-generate   DOB            = mdy(v009,1,v010)
 generate   interview      = mdy(v006,v016,v007)
+generate   DOB_min        = mdy(v009,1,v010)
+generate   DOB_max        = mdy(1 + mod(v009,12),1,v010 + floor(v009/12))
+replace    DOB_min        = mdy(1,1,v010)                                           if DOB_min == .
+replace    DOB_max        = mdy(1,1,v010 + 1)                                       if DOB_max == .
+format     %tdDD/NN/CCYY interview DOB_*
 
 sort       b3 b17
 if b17[1] == . {
@@ -595,7 +612,7 @@ else {
 	}
 
 replace    B_max          = max(min(B_max,interview),B_min)	                         if B_mi != .
-format     %tdDD/NN/CCYY interview B_* DOB
+format     %tdDD/NN/CCYY B_*
 rename     b4 sex
 rename     v012 age
 rename     v169a mobile
@@ -617,8 +634,8 @@ replace    D_max          = max(max(min(B_max + D_max,interview) - B_max,0),D_mi
 generate   W              = v005/1000000
 generate   CAL            = "C" + vcal_1                                             if k    == 1 | k  == .
 generate   row            = v018                                                     if k    == 1 | k  == .
-keep       cluster HH respondent age sex interview B_* D_* mobile W bidx caseid DOB k K woman Women iNDeX mother CAL row
-order      cluster HH respondent age sex interview B_* D_* mobile W bidx caseid DOB k K woman Women iNDeX mother CAL row
+keep       cluster HH respondent age sex interview B_* D_* mobile W bidx caseid DOB_* k K woman Women iNDeX mother CAL row
+order      cluster HH respondent age sex interview B_* D_* mobile W bidx caseid DOB_* k K woman Women iNDeX mother CAL row
 generate   reproductive = 1
 egen       GO             = cut(age), at(10,15,20,25,30,35,40,45,50,55,60) icodes
 replace    GO             = min(GO,8) + 1
@@ -629,7 +646,7 @@ keep       caseid cluster HH respondent age W mobile reproductive
 save      `temp2', replace
 
 local      sEL            = "hhid hvidx hv001 hv002 hv104 hv109 hv023 hv024 hv025 hv206 hv215 hv201 hv102"
-use       `sEL' using "`pATh'/NGPR7BFL.DTA", clear
+use       `sEL' using "`pATh'/NGPR8BFL.DTA", clear
 generate   cluster        = hv001
 generate   HH             = hv002
 generate   respondent     = hvidx
@@ -661,4 +678,10 @@ use       `dhs', clear
 merge m:1  cluster HH respondent using `temp2', nogenerate keep(master match)
 label drop _all
 sort       cluster HH caseid k
+save     "`pATh'/DHS.dta", replace
 export     delimited using "`pATh'/DHSnigeria.csv", replace
+
+
+
+
+
