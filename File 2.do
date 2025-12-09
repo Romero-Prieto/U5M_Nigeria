@@ -267,7 +267,7 @@ foreach survey of local lISt {
 	generate   qs_LB  = .
 	generate   qs_UB  = .
 	
-	mata       lIFeTaBLe(200,1,"B")                                          /*Invokes the mata function that makes the analitical work.*/
+	mata       lIFeTaBLe(100,1,"B")                                          /*Invokes the mata function that makes the analitical work.*/
 	keep       survey method period ages x n xn qx_* nMx_* Sages qs_*        /*Retains relevant variables.*/
 	drop if    x     == .                                                    /*Reduces the range to include only the relevant observations.*/
 	append     using `mAStEr'
