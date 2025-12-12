@@ -389,7 +389,6 @@ drop       temp
 
 keep if    k                 == 1
 generate   neverEXp           = 1 if                        x_index == .
-generate   notYetApproved     = 1 if                        x_validation != "validation_status_approved" & h == 1
 
 generate   A                  = dofc(sTArt)
 generate   O                  = dofc(sTArt)
@@ -404,12 +403,11 @@ generate   pregnancies        = K
 generate   urban              = 1   if UR == 1 & h == 1
 generate   rural              = 1   if UR == 2 & h == 1
 
-collapse (sum) missedDoB missedAaD errorB errorD women hOUseholds duration kIDs pregnancies urban rural boys girls neverEXp notYetApproved G24 (min) A (max) O, by(cluster enum_id)
+collapse (sum) missedDoB missedAaD errorB errorD women hOUseholds duration kIDs pregnancies urban rural boys girls neverEXp G24 (min) A (max) O, by(cluster enum_id)
 replace    duration           = duration/hOUsehold
 generate   kIDsWoMan          = kIDs/women
 replace    rural              = rural/(urban + rural)*100
 replace    neverEXp           = neverEXp/women*100
-replace    notYetApproved     = notYetApproved/hOUseholds*100
 generate   SRB                = boys/girls
 replace    G24                = G24/kIDs*100
 format     %tdDD/NN/CCYY A O
@@ -422,7 +420,6 @@ label      variable neverEXp      "Percentage of nulligravid women"
 label      variable boys          "Number of ever born boys"
 label      variable girls         "Number of ever born girls"
 label      variable SRB           "Sex Ratio at Birth (reported livebirths)"
-label      variable notYetAppro   "Percentage of surveys awaiting approval (household)"
 label      variable missedDoB     "Date of Outcome is missing"
 label      variable missedAaD     "Age of Death is not stablished"
 label      variable errorB        "Mismatched births SBH vs FPH"
@@ -434,7 +431,7 @@ label      variable kIDsWoMan     "Average number of livebirths per woman"
 label      variable kIDs          "Number of livebirths"
 label      variable pregnancies   "Number of pregnancies"
 label      variable G24           "Percentage of livebirhts g < 24w"
-format     %10.2f duration rural neverEXp notYetApproved G24 kIDsWoMan SRB
+format     %10.2f duration rural neverEXp G24 kIDsWoMan SRB
 save     "`pATh'/performance.dta", replace
 
 
