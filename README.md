@@ -6,7 +6,7 @@ In addition to the Sarmman data, this routine requires the following raw data fi
 
 UN_IGME_2024.csv, the 2024 estimates from UN Inter-agency Group for Child Mortality Estimation, available at: https://childmortality.org/
 
-NGIR7BFL.dta, NGBR7BFL.dta, and NGPR7BFL.dta, from the 2018 Nigeria Demographic and Health Survey by the DHS Program, available at: https://dhsprogram.com
+NGIR8BFL.dta, NGBR8BFL.dta, and NGPR8BFL.dta, from the 2024 Nigeria Demographic and Health Survey by the DHS Program, available at: https://dhsprogram.com
 
 hh.sav, wm.sav, and bh.sav, from the 2021 Nigeria Multiple Indicator Cluster Survey by UNICEF MICS, available at: https://mics.unicef.org
 
