@@ -65,7 +65,7 @@ void lIFeTaBLe(real scalar R, real scalar T, string scalar method) {         /*R
 
 	f             = F[sEL,.]                                                 /*Constraints the frequencies to the subset of mothers.*/
 	W             = W[sEL]                                                   /*Constraints the sampling weights to the subset of mothers.*/		
-	interview     = round(mean(interview)*100)/100                            /*Defines the END of the lexis diagram, with two-digit precision.*/
+	interview     = round(min(interview)*100)/100                            /*Defines the END of the lexis diagram, with two-digit precision.*/
 
 	timeFRaMe     = range(interview - 5*T, interview, 5)                     /*Defines the cut-off points of the analytical periods to be estimated.*/
 	ages          = ("0","7d","14d","21d","28d","2m","3m","4m","5m","6m","7m","8m","9m","10m","11m","12m","15m","18m","21m","24m","36m","48m","60m")'
@@ -267,7 +267,7 @@ foreach survey of local lISt {
 	generate   qs_LB  = .
 	generate   qs_UB  = .
 	
-	mata       lIFeTaBLe(100,1,"B")                                          /*Invokes the mata function that makes the analytical work.*/
+	mata       lIFeTaBLe(50,1,"B")                                           /*Invokes the mata function that makes the analytical work.*/
 	keep       survey method period ages x n xn qx_* nMx_* Sages qs_*        /*Retains relevant variables.*/
 	drop if    x     == .                                                    /*Reduces the range to include only the relevant observations.*/
 	append     using `mAStEr'

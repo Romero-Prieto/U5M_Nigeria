@@ -8,7 +8,7 @@ foreach sheet of local M {                                                      
 	clear                                                                       /*Clears all variables and observations.*/
 	generate   cluster = ""                                                     /*Clusters represent batches of data collection; for example, Kano corresponds to clusters 1 and 2, while Kaduna corresponds to cluster 3, and so on.*/
 	save     ``sheet'', replace                                                 /*Saves the temporary file for later use.*/
-	forvalues cluster = 6(1)7 {                                                 /*Repeats the same commands for each cluster.*/
+	forvalues cluster = 1(1)5 {                                                 /*Repeats the same commands for each cluster.*/
 		quiet import excel "`pATh'/M_`cluster'.xlsx", sheet("`sheet'") firstrow case(lower) allstring clear /*Reads KoboToolbox outputs (excel files).*/
 		generate   cluster = "C-`cluster'"                                      /*Generates an identifier for each cluster.*/
 		append     using ``sheet''                                              /*Compiles data from different clusters but the same sheet.*/
@@ -141,7 +141,7 @@ generate   Born               = sons + daughters
 generate   Dead               = sonsD + daughtersD
 generate   Away               = Born - Dead
 rename     c_count b_count
-drop       *_son* *_daughter* daughters* sons*
+drop       *_son* *_daughter*
 merge m:1  cluster hOUseHOLd using `mother', keep(master match) nogenerate
 rename     _index moTHer
 
@@ -369,6 +369,8 @@ destring   p_count hOUseHOLd latitude longitude, replace
 format     %-tcDD/NN/CCYY_HH:MM:SS sUBmiSSion* sTArt eNd
 rename     _* x_*
 drop if    x_validation      == "validation_status_not_approved"
+rename     enum_id enumeratorid
+replace    sTArt              = .                              if year(dofc(sTArt)) < 2025
 export     delimited using "`pATh'/bASe.csv", replace
 save     "`pATh'/bASe.dta", replace
 
@@ -403,7 +405,11 @@ generate   pregnancies        = K
 generate   urban              = 1   if UR == 1 & h == 1
 generate   rural              = 1   if UR == 2 & h == 1
 
-collapse (sum) missedDoB missedAaD errorB errorD women hOUseholds duration kIDs pregnancies urban rural boys girls neverEXp G24 (min) A (max) O, by(cluster enum_id)
+replace    cluster            = "Kano"   if cluster == "C-1" | cluster == "C-2"
+replace    cluster            = "Kaduna" if cluster == "C-3"
+replace    cluster            = "Yobe"   if cluster == "C-4" | cluster == "C-5"
+
+collapse (sum) missedDoB missedAaD errorB errorD women hOUseholds duration kIDs pregnancies urban rural boys girls neverEXp G24 (min) A (max) O, by(cluster enumeratorid)
 replace    duration           = duration/hOUsehold
 generate   kIDsWoMan          = kIDs/women
 replace    rural              = rural/(urban + rural)*100
@@ -432,6 +438,7 @@ label      variable kIDs          "Number of livebirths"
 label      variable pregnancies   "Number of pregnancies"
 label      variable G24           "Percentage of livebirhts g < 24w"
 format     %10.2f duration rural neverEXp G24 kIDsWoMan SRB
+export     delimited using "`pATh'/performance.csv", replace
 save     "`pATh'/performance.dta", replace
 
 
@@ -680,6 +687,31 @@ save     "`pATh'/DHS.dta", replace
 export     delimited using "`pATh'/DHSnigeria.csv", replace
 
 
+local      pATh      = "/Users/lshjr3/Documents/SARMAAN"
+tempfile   mAStEr
+local      country   = "NG"
+local      DHS_NG    = "8A 7B 6A 52 4B 23"
 
+clear
+clear mata
+generate   surveyYear   = ""
+save      `mAStEr', replace
 
+foreach co of local country {
+	foreach survey of local DHS_`co' {
+		import     dbase using "`pATh'/`co'GE`survey'FL.dbf", clear
+		generate   surveyYear     = "`co'" + string(round(DHSYEAR[1]))
+		generate   cluster        = round(DHSCLUST)
+		keep       surveyYear cluster URBAN_RURA LATNUM LONGNUM ALT_GPS ALT_DEM ADM1NAME
+		recode     ALT_GPS  (9999 = .)
+		replace    LATNUM         = . if LATNUM == 0 & LONGNUM == 0
+		replace    LONGNUM        = . if LATNUM == .
+		append     using `mAStEr'
+		save      `mAStEr', replace
+		}
+	}
+export     delimited using "`pATh'/GPSDHSnigeria.csv", replace
 
+import     dbase using "`pATh'/NigeriaMICS2021GPS.dbf", clear
+keep       SVYYEARS HH1 HH6 LONGITUDE LATITUDE GEONAMES
+export     delimited using "`pATh'/GPSMICSnigeria.csv", replace
