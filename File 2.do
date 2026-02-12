@@ -194,6 +194,7 @@ append     using `mAStEr'
 save      `mAStEr', replace
 
 use      "`pATh'/bASe.dta", clear                                            /*Loads SARMAAN data.*/
+keep if    cluster    == "C-4" | cluster == "C-5"
 generate   bidx         = k*mother
 generate   survey       = "SARMAAN-Yobe"
 drop if    birth       == "miscarriage"  | birth       == "stillbirth"
@@ -267,7 +268,7 @@ foreach survey of local lISt {
 	generate   qs_LB  = .
 	generate   qs_UB  = .
 	
-	mata       lIFeTaBLe(50,1,"B")                                           /*Invokes the mata function that makes the analytical work.*/
+	mata       lIFeTaBLe(250,1,"B")                                           /*Invokes the mata function that makes the analytical work.*/
 	keep       survey method period ages x n xn qx_* nMx_* Sages qs_*        /*Retains relevant variables.*/
 	drop if    x     == .                                                    /*Reduces the range to include only the relevant observations.*/
 	append     using `mAStEr'
