@@ -685,33 +685,3 @@ label drop _all
 sort       cluster HH caseid k
 save     "`pATh'/DHS.dta", replace
 export     delimited using "`pATh'/DHSnigeria.csv", replace
-
-
-local      pATh      = "/Users/lshjr3/Documents/SARMAAN"
-tempfile   mAStEr
-local      country   = "NG"
-local      DHS_NG    = "8A 7B 6A 52 4B 23"
-
-clear
-clear mata
-generate   surveyYear   = ""
-save      `mAStEr', replace
-
-foreach co of local country {
-	foreach survey of local DHS_`co' {
-		import     dbase using "`pATh'/`co'GE`survey'FL.dbf", clear
-		generate   surveyYear     = "`co'" + string(round(DHSYEAR[1]))
-		generate   cluster        = round(DHSCLUST)
-		keep       surveyYear cluster URBAN_RURA LATNUM LONGNUM ALT_GPS ALT_DEM ADM1NAME
-		recode     ALT_GPS  (9999 = .)
-		replace    LATNUM         = . if LATNUM == 0 & LONGNUM == 0
-		replace    LONGNUM        = . if LATNUM == .
-		append     using `mAStEr'
-		save      `mAStEr', replace
-		}
-	}
-export     delimited using "`pATh'/GPSDHSnigeria.csv", replace
-
-import     dbase using "`pATh'/NigeriaMICS2021GPS.dbf", clear
-keep       SVYYEARS HH1 HH6 LONGITUDE LATITUDE GEONAMES
-export     delimited using "`pATh'/GPSMICSnigeria.csv", replace
