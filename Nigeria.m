@@ -968,9 +968,7 @@ clear
 pATh         = "/Users/lshjr3/Documents/SARMAAN/";
 RESolUTioN   = 300;
 load(char(pATh + "Results/paleTTe.mat"),'paleTTe');
-load(char(pATh + "Results/bASe.mat"),'bASe','GPSDHSnigeria','GPSMICSnigeria');
-options                  = detectImportOptions(char(pATh + "GPSlimits.csv")); 
-options.VariableTypes{1} = 'string';
+load(char(pATh + "Results/bASe.mat"),'bASe');
 
 leGend                   = {};
 coloR                    = paleTTe([1 2 3 8 6]);
@@ -993,11 +991,6 @@ for j = 1:numel(cLUsTEr)
     sEL        = (bASe.k == 1 & bASe.cluster == cLUsTEr{j});
     S          = geoscatter(bASe.latitude(sEL),bASe.longitude(sEL),2.5,'filled','MarkerEdgeColor',coloR{j},'MarkerFaceColor',coloR{j},'MarkerFaceAlpha',.65);
 end
-leGend{end + 1}          = '$\textrm{DHS VIII}';
-S                        = geoscatter(GPSDHSnigeria.LATNUM(GPSDHSnigeria.surveyYear == 'NG2024'),GPSDHSnigeria.LONGNUM(GPSDHSnigeria.surveyYear == 'NG2024'),1.0,'filled','MarkerEdgeColor',coloR{4},'MarkerFaceColor',coloR{4},'MarkerFaceAlpha',.65);
-
-leGend{end + 1}          = '$\textrm{MICS 6}';
-S                        = geoscatter(GPSMICSnigeria.LATITUDE,GPSMICSnigeria.LONGITUDE,1.0,'filled','MarkerEdgeColor',coloR{5},'MarkerFaceColor',coloR{5},'MarkerFaceAlpha',.65);
 
 legend(leGend,'Interpreter','latex','FontSize',11*z,'FontAngle','oblique','Location','southoutside','NumColumns',5,'Box','off');
 exportgraphics(gcf,char(pATh + "Results/mAP_1.png"),'Resolution',RESolUTioN);
