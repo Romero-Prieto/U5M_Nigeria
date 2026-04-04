@@ -10,6 +10,6 @@ NGIR8BFL.dta, NGBR8BFL.dta, and NGPR8BFL.dta, from the 2024 Nigeria Demographic 
 
 hh.sav, wm.sav, and bh.sav, from the 2021 Nigeria Multiple Indicator Cluster Survey by UNICEF MICS, available at: https://mics.unicef.org
 
-The m-file and do-files run automatically from top to bottom, but the user may need to adjust the file paths for reading the data and saving the outputs. The m-file requires some nested functions (https://github.com/Romero-Prieto/RaMMPS_U5M also within this repository) to produce tables and some part of the analysis.
+The m-file and do-files run automatically from top to bottom, but the user may need to adjust the file paths for reading the data and saving the outputs. The m-file requires some nested functions (available at https://github.com/Romero-Prieto/RaMMPS_U5M) to produce tables and some part of the analysis.
 
 # U5M_Nigeria
