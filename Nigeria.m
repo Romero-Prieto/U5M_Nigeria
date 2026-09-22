@@ -295,11 +295,11 @@ dATe{2}               = eXAcTTime(dATe{1});
 Tdhs                  = dATe{2};
 models                = {'$\textit{National}$','$\textit{Kano}$','$\textit{Kaduna}$','$\textit{Yobe}$','$\textit{Sokoto}$','$\textit{North West}$'};
 dATaDHS{1}            = {DHSnigeria.age >= 0,DHSnigeria.W};
-dATaDHS{2}            = {DHSnigeria.State == 31 | DHSnigeria.State == 32,DHSnigeria.W};
-dATaDHS{3}            = {DHSnigeria.State == 29 | DHSnigeria.State == 30,DHSnigeria.W};
+dATaDHS{2}            = {DHSnigeria.State == 19 | DHSnigeria.State == 20,DHSnigeria.W};
+dATaDHS{3}            = {DHSnigeria.State == 21 | DHSnigeria.State == 22,DHSnigeria.W};
 dATaDHS{4}            = {DHSnigeria.State ==  9 | DHSnigeria.State == 10,DHSnigeria.W};
-dATaDHS{5}            = {DHSnigeria.State == 37 | DHSnigeria.State == 38,DHSnigeria.W};
-dATaDHS{6}            = {DHSnigeria.Region == 3,DHSnigeria.W};
+dATaDHS{5}            = {DHSnigeria.State ==  1 | DHSnigeria.State ==  2,DHSnigeria.W};
+dATaDHS{6}            = {DHSnigeria.Region == 1,DHSnigeria.W};
 
 for i = 1:numel(dATaDHS)
     data      = "$\textrm{DHS VIII, " + string(sprintf('%0.1f',dATe{2}(1))) + "-" + string(sprintf('%0.1f',dATe{2}(2))) + "}$";
