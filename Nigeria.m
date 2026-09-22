@@ -39,7 +39,7 @@ x{2}                  = [string(0);string([(7:7:28)';(2:1:11)';(12:3:24)';(36:12
 n                     = diff(x{1},1);
 models                = {'$\textit{15-49}$','$\textit{10-55}$'};
 MO                    = {bASe.age >= 15 & bASe.age < 50,bASe.age >= 0};
-R                     = 0;
+R                     = 500;
 aGEs                  = [5 16 23];
 
 cLUsTEr               = {'Kano','Kaduna','Yobe'};
